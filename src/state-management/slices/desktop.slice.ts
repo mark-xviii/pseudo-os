@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit'
-import Desktop from '../../types/desktop.type'
+import Desktop from '../../classes/desktop.class'
 
 const initialState: Desktop = {} as Desktop
 
