@@ -5,7 +5,7 @@ export const SFXSlice = createSlice({
   initialState: {},
   reducers: {
     playSound: (
-      state,
+      _state,
       payload: PayloadAction<typeof import('*.ogg|*.mp3|*.wav')>
     ) => {
       new Audio(payload.payload.default).play()
