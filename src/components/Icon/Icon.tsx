@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import '../../styles/icon.sass'
+import { useDispatch, useSelector } from 'react-redux'
+import { setPosition } from '../../state-management/slices/icons.slice'
+import React from 'react'
 
 interface IconInterface {
-  image?: string | null
-  x?: number | null
-  y?: number | null
+  id: string
+  image?: string
+  x?: number
+  y?: number
   defaultX: number
   defaultY: number
-  alias?: string | null
+  alias?: string
   onClick?: any
   onMouseDown?: any
   onMouseUp?: any
@@ -16,32 +20,62 @@ interface IconInterface {
 }
 
 export default function Icon(props: IconInterface) {
-  const [isMouseDown, setIsMouseDown] = useState<boolean | null>(null)
+  const ref = React.createRef<HTMLDivElement>()
+
+  const [coordinateOffset, setCoordinateOffset] = useState<{
+    x: number
+    y: number
+  }>({ x: 0, y: 0 })
+
+  const dispatch = useDispatch()
+
+  function handleDragEnd(positionX: number, positionY: number) {
+    if (ref.current) {
+      dispatch(
+        setPosition({
+          id: props.id,
+          x: positionX - coordinateOffset.x,
+          y: positionY - coordinateOffset.y,
+        })
+      )
+    }
+  }
+
+  function handleDragStart(positionX: number, positionY: number) {
+    if (ref.current) {
+      const { x: boxX, y: boxY } = ref.current?.getBoundingClientRect()
+
+      setCoordinateOffset({
+        x: Math.abs(positionX - boxX),
+        y: Math.abs(positionY - boxY),
+      })
+    }
+  }
 
   return (
     <div
-      onMouseDown={() => {
-        setIsMouseDown(true)
-      }}
-      onMouseUp={() => {
-        setIsMouseDown(false)
-      }}
-      onMouseMove={() => {
-        if (props.isHighlighted) {
-          props.onMouseMove()
-        }
-      }}
-      onClick={() => {
-        props.onClick()
-      }}
+      draggable={true}
+      ref={ref}
+      tabIndex={0}
       className={`icon${props.isHighlighted ? ' icon-highlighted' : ''}`}
       style={{
         left: props.x || props.defaultX,
         top: props.y || props.defaultY,
       }}
+      onDragStart={(event) => {
+        handleDragStart(event.clientX, event.clientY)
+      }}
+      onDragEnd={(event) => {
+        handleDragEnd(event.clientX, event.clientY)
+      }}
     >
-      <div className="picture-wrap">
-        <img className="picture" src={props.image || ''} alt="no image sry" />
+      <div className="picture-wrap" draggable={false}>
+        <img
+          className="picture"
+          src={props.image || ''}
+          alt="no image sry"
+          draggable={false}
+        />
       </div>
       <span className="title">{props.alias}</span>
     </div>
