@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import '../../styles/icon.sass'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { setPosition } from '../../state-management/slices/icons.slice'
 import React from 'react'
+import { playSound } from '../../state-management/slices/sfx.slice'
+import SoundMap from '../../maps/sound-map.map'
+import { Utils } from '../../utils'
 
 interface IconInterface {
   id: string
@@ -29,13 +32,54 @@ export default function Icon(props: IconInterface) {
 
   const dispatch = useDispatch()
 
+  function normalizeByGrid() {
+    // TODO
+  }
+
+  function normalizeByBoundaries({ x, y }: { x: number; y: number }) {
+    if (ref.current) {
+      let newX, newY
+
+      let { horizontalMargin: h, verticalMargin: v } =
+        Utils.Constants.Stylings.Desktop
+
+      v += Utils.Constants.Stylings.TopToolbar.height
+
+      const { top, right, bottom, left } = ref.current?.getBoundingClientRect()
+
+      console.log(top, right, bottom, left)
+
+      if (x < h) {
+        newX = h
+      }
+
+      if (x > window.innerWidth - h - (right - left)) {
+        newX = window.innerWidth - h - (right - left)
+      }
+
+      if (y < v + Utils.Constants.Stylings.TopToolbar.height) {
+        newY = v + Utils.Constants.Stylings.TopToolbar.height
+      }
+
+      if (y > window.innerHeight - v - (bottom - top)) {
+        newY = window.innerHeight - v - (bottom - top)
+      }
+
+      return { x: newX || x, y: newY || y }
+    }
+
+    return { x: 0, y: 0 }
+  }
+
   function handleDragEnd(positionX: number, positionY: number) {
     if (ref.current) {
       dispatch(
         setPosition({
           id: props.id,
-          x: positionX - coordinateOffset.x,
-          y: positionY - coordinateOffset.y,
+          ...normalizeByBoundaries({
+            x: positionX - coordinateOffset.x,
+            y: positionY - coordinateOffset.y,
+          }),
         })
       )
     }
@@ -57,10 +101,12 @@ export default function Icon(props: IconInterface) {
       draggable={true}
       ref={ref}
       tabIndex={0}
-      className={`icon${props.isHighlighted ? ' icon-highlighted' : ''}`}
+      className={'icon'}
       style={{
         left: props.x || props.defaultX,
-        top: props.y || props.defaultY,
+        top:
+          props.y ||
+          props.defaultY + Utils.Constants.Stylings.TopToolbar.height,
       }}
       onDragStart={(event) => {
         handleDragStart(event.clientX, event.clientY)

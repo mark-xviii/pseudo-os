@@ -1,11 +1,11 @@
 import { Provider } from 'react-redux'
 import { store } from '../../state-management/stores/root.store'
-import Desktop from '../Desktop/Desktop'
+import DisplayManager from '../DisplayManager/DisplayManager'
 
 function App() {
   return (
     <Provider store={store}>
-      <Desktop/>
+      <DisplayManager />
     </Provider>
   )
 }
